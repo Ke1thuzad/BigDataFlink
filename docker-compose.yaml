@@ -1,0 +1,61 @@
+services:
+  postgres:
+    image: postgres:latest
+    env_file: "./envs/postgres.env"
+    ports:
+      - "5433:5432"
+    volumes:
+      - "./init:/docker-entrypoint-initdb.d/"
+
+  kafka:
+    image: apache/kafka:latest
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CLUSTER_ID: "6L_vG4S_S7S_Z_D-n_3_Qw"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+
+  jobmanager:
+    build: .
+    command: jobmanager
+    hostname: jobmanager
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./data:/data
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+
+  taskmanager:
+    build: .
+    command: taskmanager
+    hostname: taskmanager
+    volumes:
+      - ./data:/data
+    depends_on:
+      - jobmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 5
+        taskmanager.memory.network.min: 128mb
+        taskmanager.memory.network.max: 128mb
+        taskmanager.memory.process.size: 2g
+
+  jupyter:
+    build: .
+    env_file: ./envs/jupyter.env
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./scripts:/home/jovyan
+      - ./data:/data
+
+    command: jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser
