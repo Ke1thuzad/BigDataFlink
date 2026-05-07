@@ -46,8 +46,8 @@ services:
         jobmanager.rpc.address: jobmanager
         taskmanager.numberOfTaskSlots: 5
         taskmanager.memory.network.min: 128mb
-        taskmanager.memory.network.max: 128mb
-        taskmanager.memory.process.size: 2g
+        taskmanager.memory.network.max: 512mb
+        taskmanager.memory.process.size: 3g
 
   jupyter:
     build: .
