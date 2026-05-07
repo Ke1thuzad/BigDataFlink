@@ -1,4 +1,4 @@
-# Big Data Spark
+# Big Data Flink
 
 Процесс формирования снежинки был перенесён в Flink.
 
